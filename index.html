@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<style type="text/css">
+		body {
+		    background-color: #f2f2f2;
+		    font-family: Helvetica,Arial,sans-serif;
+		}
+		#app {
+			-webkit-box-shadow: 0 20px 50px 0 rgba(34,43,55,.1);
+		    box-shadow: 0 20px 50px 0 rgba(34,43,55,.1);
+		    background-color: #fff;
+		    padding: 20px 40px;
+		    margin: 10px auto;
+		    border-radius: 5px;
+		    max-width: 600px;
+		}
+		.container {
+			display: flex;
+		}
+		#dealer, #player {
+			width: 50%;
+			padding: 0 10px;
+		}
+		ul.scoreboard {
+			padding-left: 0;
+    		list-style-type: none;
+
+		}
+		ul.scoreboard li {
+			padding: 10px 20px;
+		    border: 1px solid #ddd;
+		    text-align: center;
+		}
+		ul.scoreboard li:nth-child(odd) {
+			background-color: #f2f2f2;
+		}
+
+		.score {
+			font-weight: bold;
+		}
+		.center {
+			text-align: center;
+		}
+		button {
+		    color: rgba(0, 0, 0, 0.87);
+		    padding: 8px 16px;
+		    font-size: 0.875rem;
+		    min-width: 64px;
+		    transition: background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+		    min-height: 36px;
+		    box-sizing: border-box;
+		    line-height: 1.4em;
+		    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+		    font-weight: bold;
+		    border-radius: 4px;
+		    text-transform: uppercase;
+		    background-color: #f2f2f2;
+		}
+	</style>
+</head>
+<body>
+<div id="app">
+	<article class="container">
+		<div id="dealer" class="center">
+			<h3>Dealer</h3>
+			<ul class="scoreboard">
+				<li>1:&nbsp;&nbsp;&nbsp;
+					<span class="score"></span>
+				</li>
+				<li>2:&nbsp;&nbsp;&nbsp;
+					<span class="score"></span>
+				</li>
+				<li>3:&nbsp;&nbsp;&nbsp;
+					<span class="score"></span>
+				</li>
+				<li>4:&nbsp;&nbsp;&nbsp;
+					<span class="score"></span>
+				</li>
+				<li>5:&nbsp;&nbsp;&nbsp; 
+					<span class="score"></span>
+				</li>
+			</ul>
+			<h4>Total: <span class="total">0</span></h4>
+		</div>
+		<div id="player" class="center">
+			<h3>Player</h3>
+			<ul class="scoreboard">
+				<li>1:&nbsp;&nbsp;&nbsp;
+					<span class="score"></span>
+				</li>
+				<li>2:&nbsp;&nbsp;&nbsp;
+					<span class="score"></span>
+				</li>
+				<li>3:&nbsp;&nbsp;&nbsp;
+					<span class="score"></span>
+				</li>
+				<li>4:&nbsp;&nbsp;&nbsp;
+					<span class="score"></span>
+				</li>
+				<li>5:&nbsp;&nbsp;&nbsp;
+					<span class="score"></span>
+				</li>
+			</ul>
+			<h4>Total: <span class="total">0</span></h4>
+		</div>
+	</article>
+	<article class="center">
+		<button id="start" onclick="beginGame()">Start</button>
+		<button id="hit" onclick="hit('player')">hit</button>
+		<button id="hold" onclick="hold()">hold</button>
+		<!-- <button onclick="hit('dealer')">dealer hit</button> -->
+		<button id="reset" onclick="reset()">play again</button>
+	</article>
+</div>
+<script type="text/javascript">
+
+	var game = [
+		{name: 'player', hit: 0, score: 0, 0: null, 1: null, 2: null, 3: null, 4: null},
+		{name: 'dealer', hit: 0, score: 0, 0: null, 1: null, 2: null, 3: null, 4: null}
+	]
+	var state = {
+		gameStarted: false,
+		playerLost: false,
+		playerHold: false,
+		dealerWon: false,
+		gameOver: false
+	}
+	var playerHand = document.getElementById('player').getElementsByTagName('li');
+	var dealerHand = document.getElementById('dealer').getElementsByTagName('li');
+	var playerTotal = document.getElementById('player').getElementsByClassName('total')[0];
+	var dealerTotal = document.getElementById('dealer').getElementsByClassName('total')[0];
+
+	reset = () => {
+		console.log('reset')
+		game = [
+			{name: 'player', hit: 0, score: 0, 0: null, 1: null, 2: null, 3: null, 4: null},
+			{name: 'dealer', hit: 0, score: 0, 0: null, 1: null, 2: null, 3: null, 4: null}
+		];
+		state = {
+			gameStarted: false,
+			playerLost: false,
+			playerHold: false,
+			dealerWon: false,
+			gameOver: false
+		};
+		refreshScore();
+		displayButtons(show=false, ["reset"]);
+		displayButtons(show=true , ["start"])
+	}
+
+	random = () => {
+		const number = Math.floor(Math.random() * 14) + 1;
+		if (number === 11 || number === 12 || number === 13) {
+			return 10;
+		} else if (number === 14) {
+			return 1;
+		} else {
+			return number;
+		}
+	}
+
+	updateScoreBoard = () => {
+		playerHand[0].getElementsByClassName('score')[0].innerHTML = game[0][0]
+		playerHand[1].getElementsByClassName('score')[0].innerHTML = game[0][1]
+		playerHand[2].getElementsByClassName('score')[0].innerHTML = game[0][2]
+		playerHand[3].getElementsByClassName('score')[0].innerHTML = game[0][3]
+		playerHand[4].getElementsByClassName('score')[0].innerHTML = game[0][4]
+
+		dealerHand[0].getElementsByClassName('score')[0].innerHTML = game[1][0]
+		dealerHand[1].getElementsByClassName('score')[0].innerHTML = game[1][1]
+		dealerHand[2].getElementsByClassName('score')[0].innerHTML = game[1][2]
+		dealerHand[3].getElementsByClassName('score')[0].innerHTML = game[1][3]
+		dealerHand[4].getElementsByClassName('score')[0].innerHTML = game[1][4]
+	}
+
+	refreshScore = () => {
+		const playerScore = game[0].score;
+		const dealerScore = game[1].score;
+		playerTotal.innerHTML = playerScore;
+		dealerTotal.innerHTML = dealerScore;
+		updateScoreBoard()
+
+		if (playerScore > 21) {
+				alert('You lost!');
+				state.gameOver = true;
+				displayButtons(show=false, ["hit", "hold"])
+				displayButtons(show=true, ["reset"])
+		} else {
+			if (!state.playerHold) {
+				console.log("player may want to hit")
+			} else if (!state.playerLost && dealerScore < 17) {
+				console.log('dealer needs to hit')
+			} else if (playerScore === dealerScore === 21 || playerScore === dealerScore) {
+				alert('push!');
+				state.gameOver = true;
+				displayButtons(show=false, ["hit", "hold"])
+				displayButtons(show=true, ["reset"])
+			} else if ((playerScore > 21) || (dealerScore > playerScore && dealerScore < 22)) {
+				alert('You lost!');
+				state.gameOver = true;
+				displayButtons(show=false, ["hit", "hold"])
+				displayButtons(show=true, ["reset"])
+			} else if(playerScore === 21) {
+				alert('blackjack!');
+				state.gameOver = true;
+				displayButtons(show=false, ["hit", "hold"])
+				displayButtons(show=true, ["reset"])
+			} else {
+				alert('you won!');
+				state.gameOver = true;
+				displayButtons(show=false, ["hit", "hold"])
+				displayButtons(show=true, ["reset"])
+			}
+		} 
+
+		if (state.playerLost) {
+				alert('You lost!');
+				state.gameOver = true;
+				displayButtons(show=false, ["hit", "hold"])
+				displayButtons(show=true, ["reset"])
+		}
+
+	}
+
+	hit = (user) => {
+		if (user === 'player' && game[0].hit < 5) {
+			const number = random();
+			const index = game[0].hit
+			game[0][index] = number
+			game[0].hit++;
+			game[0].score += number;
+			refreshScore()
+		} else if (user === 'dealer' && game[1].hit < 5 && game[1].score < 17) {
+			const number = random();
+			const index = game[1].hit
+			game[1][index] = number
+			game[1].hit++;
+			game[1].score += number;
+			refreshScore()
+		} else {
+			refreshScore()
+		}
+	}
+
+	dealerHit = () => {
+		if (state.playerHold && !state.playerLost && !state.dealerWon) {
+			let checker = setInterval(function(){
+				const dealer = game[1]
+				const player = game[0]
+
+				if (dealer.score > 17) {
+					refreshScore()
+					clearInterval(checker)
+				} else {
+					hit('dealer')
+				}
+
+			}, 500);
+		}
+	}
+
+	hold = () => {
+		state.playerHold = true
+		dealerHit()
+	}
+
+	beginGame = () => {
+		if (state.gameStarted || state.gameOver) {
+			reset()
+			state.gameStarted = true;
+			displayButtons(show=false, ["start"]);
+			displayButtons(show=true, ["hit", "hold"])
+			hit('dealer')
+			hit('dealer')
+			hit('player')
+			hit('player')
+		} else {
+			state.gameStarted = true;
+			displayButtons(show=false, ["start"]);
+			displayButtons(show=true, ["hit", "hold"])
+			hit('dealer')
+			hit('dealer')
+			hit('player')
+			hit('player')
+		}
+		refreshScore()
+	}
+	displayButtons = (show = true, [...button]) => {
+		if (show) {
+			for (let i in button) {
+				document.getElementById(button[i]).style.display = "initial";
+			}
+		} else {
+			for (let i in button) {
+				document.getElementById(button[i]).style.display = "none";
+			}
+		}
+	}
+	window.onload = () => {
+		displayButtons(show=false, ["hit", "hold", "reset"])
+	}
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
